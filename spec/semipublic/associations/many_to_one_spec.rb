@@ -7,7 +7,7 @@ describe 'Many to One Associations' do
 
       property :name,        String, :key => true
       property :age,         Integer
-      property :description, Text
+      property :description, String
 
       has n, :comments
     end
@@ -18,14 +18,14 @@ describe 'Many to One Associations' do
 
       property :name,        String, :key => true
       property :age,         Integer
-      property :description, Text
+      property :description, String
     end
 
     class ::Comment
       include DataMapper::Resource
 
-      property :id,   Serial
-      property :body, Text
+      property :id,   Integer, :serial => true, :key => true
+      property :body, String
 
       belongs_to :user
     end

@@ -33,7 +33,7 @@ end
       class ::Author
         include DataMapper::Resource
 
-        property :id,   Serial
+        property :id,   Integer, :serial => true, :key => true
         property :name, String
 
         has n, :articles
@@ -42,9 +42,9 @@ end
       class ::Article
         include DataMapper::Resource
 
-        property :id,      Serial
+        property :id,      Integer, :serial => true, :key => true
         property :title,   String, :nullable => false
-        property :content, Text
+        property :content, String, :lazy => true
 
         belongs_to :author
         belongs_to :original, :model => self

@@ -210,25 +210,25 @@ describe DataMapper::Associations do
     class ::Car
       include DataMapper::Resource
 
-      property :id, Serial
+      property :id, Integer, :serial => true, :key => true
     end
 
     class ::Engine
       include DataMapper::Resource
 
-      property :id, Serial
+      property :id, Integer, :serial => true, :key => true
     end
 
     class ::Door
       include DataMapper::Resource
 
-      property :id, Serial
+      property :id, Integer, :serial => true, :key => true
     end
 
     class ::Window
       include DataMapper::Resource
 
-      property :id, Serial
+      property :id, Integer, :serial => true, :key => true
     end
   end
 

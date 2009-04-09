@@ -83,7 +83,7 @@ module DataMapper
       lazy_load
 
       properties = model.properties(repository.name)
-      fields     = properties.key | [ properties.discriminator ].compact | query.fields
+      fields     = properties.key | query.fields
 
       # replace the list of resources
       replace(all(query.update(:fields => fields, :reload => true)))
@@ -109,7 +109,9 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      key = model.typecast_key(key)
+      # We allow a numeric key to be looked up by a string, too
+      key = model.key(repository_name).zip(key).map { |p,v| p.is_a?(Numeric) ? v.to_i : v }
+      
       return if key.any? { |v| v.blank? }
 
       if resource = @identity_map[key]

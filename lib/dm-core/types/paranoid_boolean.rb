@@ -1,9 +1,10 @@
+require File.dirname(__FILE__) / 'boolean'
 module DataMapper
   module Types
-    class ParanoidBoolean < Type
-      primitive TrueClass
-      default   false
-      lazy      true
+    class ParanoidBoolean < Boolean
+      include DataMapper::Type
+      default_options[:default] = false
+      default_options[:lazy]    = true
 
       def self.bind(property)
         repository_name = property.repository_name

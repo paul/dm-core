@@ -1,7 +1,7 @@
 module DataMapper
   module Types
-    class Boolean < Type
-      primitive TrueClass
+    class Boolean < TrueClass
+      include DataMapper::Type
     end # class Boolean
   end # module Types
 end # module DataMapper

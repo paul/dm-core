@@ -171,7 +171,7 @@ module DataMapper
 
                 # create the property within the correct repository
                 DataMapper.repository(child_repository_name) do
-                  child_model.property(property_name, parent_property.primitive, options)
+                  child_model.property(property_name, parent_property.type, options)
                 end
               end
             end

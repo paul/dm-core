@@ -12,7 +12,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       class ::Author
         include DataMapper::Resource
 
-        property :id,   Serial
+        property :id,   Integer, :serial => true, :key => true
         property :name, String
 
         has n, :articles, :through => Resource
@@ -21,9 +21,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       class ::Article
         include DataMapper::Resource
 
-        property :id,      Serial
+        property :id,      Integer, :serial => true, :key => true
         property :title,   String, :nullable => false
-        property :content, Text
+        property :content, String, :lazy => true
 
         has n, :authors, :through => Resource
         belongs_to :original, :model => self

@@ -90,7 +90,7 @@ share_examples_for 'A semipublic Resource' do
           :alternate
         end
 
-        property :id,    Serial
+        property :id,    Integer, :serial => true, :key => true
         property :name,  String
         property :value, Integer
       end

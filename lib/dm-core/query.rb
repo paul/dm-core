@@ -456,12 +456,6 @@ module DataMapper
         return @inheritance_property_index
       end
 
-      fields.each_with_index do |property, i|
-        if property.type == Types::Discriminator
-          return @inheritance_property_index = i
-        end
-      end
-
       @inheritance_property_index = nil
     end
 
@@ -967,9 +961,6 @@ module DataMapper
         @conditions << condition
       end
     end
-
-    # TODO: make this typecast all bind values that do not match the
-    # property primitive
 
     # TODO: document this
     #   TODO: needs example

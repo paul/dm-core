@@ -1,8 +1,8 @@
 module DataMapper
   module Types
-    class ParanoidDateTime < Type
-      primitive DateTime
-      lazy      true
+    class ParanoidDateTime < DateTime
+      include DataMapper::Type
+      default_options[:lazy] = true
 
       def self.bind(property)
         repository_name = property.repository_name

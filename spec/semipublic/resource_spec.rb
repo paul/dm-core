@@ -7,7 +7,7 @@ describe DataMapper::Resource do
 
       property :name,        String, :key => true
       property :age,         Integer
-      property :description, Text
+      property :description, String, :lazy => true
     end
 
     # This is a special class that needs to be an exact copy of User
@@ -16,14 +16,14 @@ describe DataMapper::Resource do
 
       property :name,        String, :key => true
       property :age,         Integer
-      property :description, Text
+      property :description, String, :lazy => true
     end
 
     class ::Comment
       include DataMapper::Resource
 
-      property :id,   Serial
-      property :body, Text
+      property :id,   Integer, :serial => true, :key => true
+      property :body, String
 
       belongs_to :user
     end

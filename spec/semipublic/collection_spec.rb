@@ -11,9 +11,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       class ::Article
         include DataMapper::Resource
 
-        property :id,      Serial
+        property :id,      Integer, :serial => true, :key => true
         property :title,   String
-        property :content, Text
+        property :content, String, :lazy => true
       end
 
       @model = Article

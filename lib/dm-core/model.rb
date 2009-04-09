@@ -329,7 +329,6 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      key = typecast_key(key)
       return if key.any? { |v| v.blank? }
       repository = self.repository
       repository.identity_map(self)[key] || first(to_query(repository, key))
@@ -446,10 +445,6 @@ module DataMapper
       assert_valid
 
       model = nil
-
-      if discriminator = properties(repository_name).discriminator
-        model = attributes[discriminator.name]
-      end
 
       model ||= self
 
@@ -668,12 +663,6 @@ module DataMapper
     # @api private
     def set_paranoid_property(name, &block)
       paranoid_properties[name] = block
-    end
-
-    # TODO: document
-    # @api private
-    def typecast_key(key)
-      self.key(repository_name).zip(key).map { |p,v| p.typecast(v) }
     end
 
     # TODO: document

@@ -9,9 +9,9 @@ require 'ostruct'
 # class methods
 describe DataMapper::Query do
   before :all do
-    class ::Password < DataMapper::Type
-      primitive String
-      length    40
+    class ::Password < String
+      include DataMapper::Type
+      default_options[:length] = 40
     end
 
     class ::User
@@ -1185,10 +1185,10 @@ describe DataMapper::Query do
         #<DataMapper::Query
           @repository=:default
           @model=User
-          @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:referrer_name>]
+          @fields=[#<DataMapper::Property @model=User @name=:name @type=String>, #<DataMapper::Property @model=User @name=:referrer_name @type=String>]
           @links=[]
           @conditions=#<DataMapper::Conditions::AndOperation @operands=[]>
-          @order=[#<DataMapper::Query::Direction @property=#<DataMapper::Property @model=User @name=:name> @direction=:asc>]
+          @order=[#<DataMapper::Query::Direction @property=#<DataMapper::Property @model=User @name=:name @type=String> @direction=:asc>]
           @limit=3
           @offset=0
           @reload=false

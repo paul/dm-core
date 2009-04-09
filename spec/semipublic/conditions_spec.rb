@@ -39,7 +39,7 @@ describe "DataMapper::Conditions" do
     class ::Heffalump
       include DataMapper::Resource
 
-      property :id,        Serial
+      property :id,        Integer, :serial => true, :key => true
       property :color,     String
       property :num_spots, Integer
       property :striped,   Boolean

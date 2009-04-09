@@ -7,7 +7,7 @@ describe DataMapper::Resource, 'Transactions' do
 
       property :name,        String, :key => true
       property :age,         Integer
-      property :description, Text
+      property :description, String, :lazy => true
       property :admin,       Boolean, :accessor => :private
 
       belongs_to :referrer, :model => self, :child_key => [ :referrer_name ]
@@ -19,8 +19,8 @@ describe DataMapper::Resource, 'Transactions' do
     class ::Comment
       include DataMapper::Resource
 
-      property :id,   Serial
-      property :body, Text
+      property :id,   Integer, :serial => true, :key => true
+      property :body, String
 
       belongs_to :user
     end
@@ -28,8 +28,8 @@ describe DataMapper::Resource, 'Transactions' do
     class ::Article
       include DataMapper::Resource
 
-      property :id,   Serial
-      property :body, Text
+      property :id,   Integer, :serial => true, :key => true
+      property :body, String
 
       has n, :paragraphs
     end
@@ -37,7 +37,7 @@ describe DataMapper::Resource, 'Transactions' do
     class ::Paragraph
       include DataMapper::Resource
 
-      property :id,   Serial
+      property :id,   Integer, :serial => true, :key => true
       property :text, String
 
       belongs_to :article

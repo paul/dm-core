@@ -8,11 +8,11 @@ describe DataMapper::Property do
     class ::Track
       include DataMapper::Resource
 
-      property :id,               Serial
+      property :id,               Integer, :serial => true, :key => true
       property :artist,           String, :lazy => false, :index => :artist_album
       property :title,            String, :field => "name", :index => true
       property :album,            String, :index => :artist_album
-      property :musicbrainz_hash, String, :unique => true, :unique_index => true
+      property :musicbrainz_hash, String, :unique => true
     end
 
     class ::Image
@@ -20,7 +20,7 @@ describe DataMapper::Property do
 
       property :md5hash,      String, :key => true, :length => 32
       property :title,        String, :nullable => false, :unique => true
-      property :description,  Text,   :length => 1..1024, :lazy => true
+      property :description,  String,   :length => 1..1024, :lazy => true
 
       property :format,       String, :default => "jpeg"
       # WxH, stored as a dumped Ruby pair
@@ -96,16 +96,6 @@ describe DataMapper::Property do
 
       it 'returns nil when property has no index' do
         Track.properties[:musicbrainz_hash].index.should be_nil
-      end
-    end
-
-    describe "#unique_index" do
-      it 'returns true when property has unique index' do
-        Track.properties[:musicbrainz_hash].unique_index.should be_true
-      end
-
-      it 'returns nil when property has no unique index' do
-        Image.properties[:title].unique_index.should be_nil
       end
     end
 
@@ -260,6 +250,7 @@ describe DataMapper::Property do
       it 'triggers lazy loading for given resource'
 
       it 'type casts given value' do
+        pending "me convincing dkubb we shouldnt be casting"
         # set it to a float
         @property.set(@image, 1.0)
         # get a string that has been typecasted
@@ -291,145 +282,6 @@ describe DataMapper::Property do
         @image.title.should == "Set with dark Ruby magic"
       end
     end
-
-    describe "#typecast" do
-      describe "when type is able to do typecasting on it's own" do
-        it 'delegates all the work to the type'
-      end
-
-      describe "when value is nil" do
-        it 'returns value unchanged' do
-          Image.properties[:size].typecast(nil).should be(nil)
-        end
-      end
-
-      describe "when value is a Ruby primitive" do
-        it 'returns value unchanged' do
-          Image.properties[:size].typecast([3200, 2400]).should == [3200, 2400]
-        end
-      end
-
-      describe "when type primitive is a string" do
-        it 'returns string representation of the new value' do
-          Image.properties[:title].typecast(1.0).should == "1.0"
-        end
-      end
-
-      describe "when type primitive is a float" do
-        it 'returns float representation of the value' do
-          Image.properties[:filesize].typecast("24.34").should == 24.34
-        end
-      end
-
-      describe "when type primitive is an integer" do
-        describe "and value only has digits in it" do
-          it 'returns integer representation of the value' do
-            Image.properties[:filesize].typecast("24").should == 24
-          end
-        end
-
-        describe "and value is a string representation of a hex or octal integer" do
-          it 'returns 0' do
-            Image.properties[:filesize].typecast("0x24").should == 0.0
-          end
-        end
-
-        describe "but value has non-digits and punctuation in it" do
-          it "returns result of property type's casting of nil" do
-            # nil.to_f => 0.0
-            Image.properties[:filesize].typecast("datamapper").should == 0.0
-          end
-        end
-      end
-
-      describe "when type primitive is a BigDecimal" do
-        it 'casts the value to BigDecimal'
-      end
-
-      describe "when type primitive is a DateTime" do
-        describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a DateTime instance from hash values' do
-            result = Image.properties[:retouched_at].typecast({
-                                                                :year  => 2006,
-                                                                :month => 11,
-                                                                :day   => 23,
-                                                                :hour  => 12,
-                                                                :min   => 0,
-                                                                :sec   => 0
-                                                              })
-            result.year.should == 2006
-            result.month.should == 11
-            result.day.should == 23
-            result.hour.should == 12
-            result.min.should == 0
-            result.sec.should == 0
-          end
-        end
-
-        describe "and value is a string" do
-          it 'parses the string' do
-            Image.properties[:retouched_at].typecast("Dec, 2006").month.should == 12
-          end
-        end
-      end
-
-      describe "when type primitive is a Date" do
-        describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a Date instance from hash values' do
-            result = Image.properties[:taken_on].typecast({
-                                                            :year  => 2007,
-                                                            :month => 03,
-                                                            :day   => 25
-                                                          })
-            result.year.should == 2007
-            result.month.should == 03
-            result.day.should == 25
-          end
-        end
-
-        describe "and value is a string" do
-          it 'parses the string' do
-            result = Image.properties[:taken_on].typecast("Dec 20th, 2006")
-            result.month.should == 12
-            result.day.should == 20
-            result.year.should == 2006
-          end
-        end
-      end
-
-      describe "when type primitive is a Time" do
-        describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a Time instance from hash values' do
-            result = Image.properties[:retouched_at].typecast({
-                                                                :year  => 2006,
-                                                                :month => 11,
-                                                                :day   => 23,
-                                                                :hour  => 12,
-                                                                :min   => 0,
-                                                                :sec   => 0
-                                                              })
-            result.year.should == 2006
-            result.month.should == 11
-            result.day.should == 23
-            result.hour.should == 12
-            result.min.should == 0
-            result.sec.should == 0
-          end
-        end
-
-        describe "and value is a string" do
-          it 'parses the string' do
-            result = Image.properties[:taken_at].typecast("22:24")
-            result.hour.should == 22
-            result.min.should == 24
-          end
-        end
-      end
-
-      describe "when type primitive is a Class" do
-        it 'looks up constant in Property namespace'
-      end
-    end # #typecase
 
     describe "#default_for" do
       it 'returns default value for non-callables' do

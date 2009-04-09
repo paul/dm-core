@@ -264,8 +264,6 @@ module DataMapper
   #  :index               if true, index is created for the property. If a Symbol, index
   #                       is named after Symbol value instead of being based on property name.
   #
-  #  :unique_index        true specifies that index on this property should be unique
-  #
   #  :auto_validation     if true, automatic validation is performed on the property
   #
   #  :validates           validation context. Use together with dm-validations.
@@ -304,33 +302,14 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :unique_index, :auto_validation,
+      :format, :index, :auto_validation,
       :validates, :unique, :precision, :scale
     ]
-
-    # TODO: rename PRIMITIVES, and freeze this
-    TYPES = [
-      TrueClass,
-      String,
-      Float,
-      Integer,
-      BigDecimal,
-      DateTime,
-      Date,
-      Time,
-      Object,
-      Class,
-    ].to_set.freeze
 
     # Possible :visibility option values
     VISIBILITY_OPTIONS = [ :public, :protected, :private ].to_set.freeze
 
-    DEFAULT_LENGTH           = 50
-    DEFAULT_PRECISION        = 10
-    DEFAULT_SCALE_BIGDECIMAL = 0    # Default scale for BigDecimal type
-    DEFAULT_SCALE_FLOAT      = nil  # Default scale for Float type
-
-    attr_reader :primitive, :model, :name, :instance_variable_name,
+    attr_reader :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,
       :default, :precision, :scale, :repository_name
 
@@ -442,20 +421,6 @@ module DataMapper
     # @api public
     def index
       @index
-    end
-
-    # Returns true if property has unique index. Serial properties and
-    # keys are unique by default.
-    #
-    # @return [TrueClass,Symbol,Array,NilClass]
-    #   returns true if property is indexed by itself
-    #   returns a Symbol if the property is indexed with other properties
-    #   returns an Array if the property belongs to multiple indexes
-    #   returns nil if the property does not belong to any indexes
-    #
-    # @api public
-    def unique_index
-      @unique_index
     end
 
     # Returns whether or not the property is to be lazy-loaded
@@ -586,7 +551,7 @@ module DataMapper
     #   value to which value of this property will be set for +resource+
     #
     # @return [Object]
-    #   +value+ after being typecasted according to this property's primitive
+    #   +value+ 
     #
     # @raise [ArgumentError] "+resource+ should be a Resource, but was ...."
     #
@@ -594,7 +559,6 @@ module DataMapper
     def set(resource, value)
       loaded   = loaded?(resource)
       original = get!(resource) if loaded
-      value    = typecast(value)
 
       if loaded && value == original
         return original
@@ -651,66 +615,6 @@ module DataMapper
       resource.send(:lazy_load, contexts)
     end
 
-    # typecasts values into a primitive (Ruby class that backs DataMapper
-    # property type). If property type can handle typecasting, it is delegated.
-    # How typecasting is perfomed, depends on the primitive of the type.
-    #
-    # If type's primitive is a TrueClass, values of 1, t and true are casted to true.
-    #
-    # For String primitive, +to_s+ is called on value.
-    #
-    # For Float primitive, +to_f+ is called on value.
-    #
-    # For Integer primitive, +to_i+ is called on value but only if value is an integer
-    # (decimal or binary), otherwise nil is returned. This is so because "junk".to_i
-    # returns 0.
-    #
-    # Properties of type with BigDecimal primitive use +BigDecimal(value)+ for casting.
-    # Casting to DateTime, Time and Date can handle both hashes with keys like :day or
-    # :hour and strings in format methods like Time.parse can handle.
-    #
-    # @param [#to_s, #to_f, #to_i] value
-    #   the value to be typecast to this property's primitive
-    #
-    # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
-    #   The typecasted +value+
-    #
-    # @api private
-    def typecast(value)
-      return type.typecast(value, self) if type.respond_to?(:typecast)
-      return value if value.kind_of?(primitive) || value.nil?
-      begin
-        if    primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
-        elsif primitive == String     then value.to_s
-        elsif primitive == Float      then value.to_f
-        elsif primitive == Integer
-          # The simplest possible implementation, i.e. value.to_i, is not
-          # desirable because "junk".to_i gives "0". We want nil instead,
-          # because this makes it clear that the typecast failed.
-          #
-          # After benchmarking, we preferred the current implementation over
-          # these two alternatives:
-          # * Integer(value) rescue nil
-          # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
-          value_to_i = value.to_i
-          if value_to_i == 0
-            value.to_s =~ /\A(0x|0b)?0+\z/ ? 0 : nil
-          else
-            value_to_i
-          end
-        elsif primitive == BigDecimal then BigDecimal(value.to_s)
-        elsif primitive == DateTime   then typecast_to_datetime(value)
-        elsif primitive == Date       then typecast_to_date(value)
-        elsif primitive == Time       then typecast_to_time(value)
-        elsif primitive == Class      then self.class.find_const(value)
-        else
-          value
-        end
-      rescue
-        value
-      end
-    end
-
     # Returns a default value of the
     # property for given resource.
     #
@@ -760,8 +664,20 @@ module DataMapper
     #
     # @api public
     def inspect
-      "#<#{self.class.name} @model=#{model.inspect} @name=#{name.inspect}>"
+      "#<#{self.class.name} @model=#{model.inspect} @name=#{name.inspect} @type=#{type.inspect}>"
     end
+
+    # So we can detect the type of a property in a case statement, including class inheritance
+    # Example:
+    # @type = Integer
+    # property === Numeric #=> true
+    #
+    def is_a?(klass)
+      return true if klass == DataMapper::Property
+      type.ancestors.include?(klass)
+    end
+    alias === is_a?
+    alias kind_of? is_a?
 
     private
 
@@ -773,68 +689,47 @@ module DataMapper
 
       options = options.dup
 
-      if TrueClass == type
-        warn "#{type} is deprecated, use Boolean instead"
-        type = Types::Boolean
-      elsif Integer == type && options.delete(:serial)
-        warn "#{type} with explicit :serial option is deprecated, use Serial instead"
-        type = Types::Serial
-      elsif String == type && options.key?(:size)
+      if String == type && options.key?(:size)
         warn "#{type} with :size option is deprecated, use String with :length instead"
         options[:length] = options.delete(:size)
       end
 
       assert_valid_options(options)
 
-      # if the type can be found within Types then
-      # use that class rather than the primitive
-      unless type.name.blank?
-        type = Types.find_const(type.name)
-      end
-
-      unless TYPES.include?(type) || (Type > type && TYPES.include?(type.primitive))
-        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
-      end
-
       @repository_name        = model.repository_name
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
-      @custom                 = Type > @type
-      @options                = (@custom ? @type.options.merge(options) : options.dup).freeze
+      @options                = (@type.respond_to?(:default_options) ? @type.default_options.merge(options) : options.dup).freeze
       @instance_variable_name = "@#{@name}".freeze
 
-      @primitive = @type.respond_to?(:primitive) ? @type.primitive : @type
       @field     = @options[:field].freeze
       @default   = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
-      @key          = @options.fetch(:key,          @serial || false)
+      @key          = @options.fetch(:key,          false)
       @nullable     = @options.fetch(:nullable,     @key == false)
       @index        = @options.fetch(:index,        nil)
-      @unique_index = @options.fetch(:unique_index, nil)
       @unique       = @options.fetch(:unique,       @serial || @key || false)
-      @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
+      @lazy         = @options.fetch(:lazy,         false) && !@key
 
       # assign attributes per-type
-      if String == @primitive || Class == @primitive
-        @length = @options.fetch(:length, DEFAULT_LENGTH)
-      elsif BigDecimal == @primitive || Float == @primitive
-        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
-        @scale     = @options.fetch(:scale,     Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
+      if is_a?(String)
+        @length    = @options.fetch(:length, nil)
+      elsif BigDecimal == @type || Float == @type
+        @precision = @options.fetch(:precision, nil)
+        @scale     = @options.fetch(:scale,     nil)
 
-        unless @precision > 0
+        if @precision && !@precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
         end
 
-        unless Float == @primitive && @scale.nil?
-          unless @scale >= 0
-            raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
-          end
+        if @scale && !@scale >= 0
+          raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
+        end
 
-          unless @precision >= @scale
-            raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
-          end
+        if @precision && @precision && !@precision >= @scale
+          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
         end
       end
 
@@ -842,12 +737,6 @@ module DataMapper
       create_reader
       create_writer
 
-      if custom?
-        type.bind(self)
-      end
-
-      # comes from dm-validations
-      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
     def assert_valid_options(options)
@@ -870,7 +759,7 @@ module DataMapper
               raise ArgumentError, "options[#{key.inspect}] must be either true or false"
             end
 
-          when :index, :unique_index
+          when :index
             assert_kind_of "options[#{key.inspect}]", value, Symbol, Array, TrueClass
 
           when :length
@@ -917,7 +806,7 @@ module DataMapper
 
       boolean_reader_name = "#{name}?".to_sym
 
-      if primitive == TrueClass && !model.instance_methods(false).any? { |m| m.to_sym == boolean_reader_name }
+      if type == TrueClass && !model.instance_methods(false).any? { |m| m.to_sym == boolean_reader_name }
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           alias #{name}? #{name}
@@ -939,126 +828,6 @@ module DataMapper
           properties[#{name.inspect}].set(self, value)
         end
       RUBY
-    end
-
-    # Typecasts an arbitrary value to a DateTime.
-    # Handles both Hashes and DateTime instances.
-    #
-    # @param [Hash, #to_s] value
-    #   value to be typecast to DateTime
-    #
-    # @return [DateTime]
-    #   Value type casted to DateTime
-    #
-    # @api private
-    def typecast_to_datetime(value)
-      case value
-        when Hash then typecast_hash_to_datetime(value)
-        else           DateTime.parse(value.to_s)
-      end
-    end
-
-    # Typecasts an arbitrary value to a Date
-    # Handles both Hashes and Date instances.
-    #
-    # @param [Hash, #to_s] value
-    #   value to be typecast to Date
-    #
-    # @return [Date]
-    #   Value type casted to Date
-    #
-    # @api private
-    def typecast_to_date(value)
-      case value
-        when Hash then typecast_hash_to_date(value)
-        else           Date.parse(value.to_s)
-      end
-    end
-
-    # Typecasts an arbitrary value to a Time
-    # Handles both Hashes and Time instances.
-    #
-    # @param [Hash, #to_s] value
-    #   value to be typecast to Time. Hash objects will be passed to
-    #   #typecast_hash_to_time, anything else will have
-    #   +Time.parse(value.to_s)+ called
-    #
-    # @return [Time]
-    #   +value+ typecasted to Time
-    #
-    # @api private
-    def typecast_to_time(value)
-      case value
-        when Hash then typecast_hash_to_time(value)
-        else           Time.parse(value.to_s)
-      end
-    end
-
-    # Creates a DateTime instance from a Hash with keys :year, :month, :day,
-    # :hour, :min, :sec
-    #
-    # @param [Hash] hash
-    #   hash to be typecast to DateTime
-    #
-    # @return [DateTime]
-    #   DateTime object constructed from a Hash.
-    #
-    # @api private
-    def typecast_hash_to_datetime(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
-      DateTime.new(*args)
-    rescue ArgumentError => e
-      t = typecast_hash_to_time(hash)
-      DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
-    end
-
-    # Creates a Date instance from a Hash with keys :year, :month, :day
-    #
-    # @param [Hash] hash
-    #   hash to be typecast to Date
-    #
-    # @return [Date]
-    #   Date object constructed from a Hash.
-    #
-    # @api private
-    def typecast_hash_to_date(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day)
-      Date.new(*args)
-    rescue ArgumentError
-      t = typecast_hash_to_time(hash)
-      Date.new(t.year, t.month, t.day)
-    end
-
-    # Creates a Time instance from a Hash with keys :year, :month, :day,
-    # :hour, :min, :sec
-    #
-    # @param [Hash] hash
-    #   hash to be typecast to Time
-    #
-    # @return [Time]
-    #   Time object constructed from a Hash.
-    #
-    # @api private
-    def typecast_hash_to_time(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
-      Time.local(*args)
-    end
-
-    # Extracts the given args from the hash. If a value does not exist, it
-    # uses the value of Time.now.
-    #
-    # @param [Hash] hash
-    #   hash to extract time args from
-    # @param [Hash] args
-    #   time args to extract from +hash+
-    #
-    # @return [Array]
-    #   Extracted values
-    #
-    # @api private
-    def extract_time_args_from_hash(hash, *args)
-      now = Time.now
-      args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
     end
 
     ##

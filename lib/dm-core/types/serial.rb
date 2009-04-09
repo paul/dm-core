@@ -1,8 +1,8 @@
 module DataMapper
   module Types
-    class Serial < Type
-      primitive Integer
-      serial true
+    class Serial < Integer
+      include DataMapper::Type
+      default_options[:serial] = true
     end # class Text
   end # module Types
 end # module DataMapper
