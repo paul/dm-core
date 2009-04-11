@@ -217,7 +217,6 @@ module DataMapper
     end
   end
 
-  private
   # Turns options hash or connection URI into
   # options hash used by the adapter
   #
@@ -225,31 +224,22 @@ module DataMapper
   def self.normalize_options(uri_or_options)
     assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
-    options = if uri_or_options.kind_of?(Hash)
-                uri_or_options.to_mash
-              else
-                uri     = uri_or_options.kind_of?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
-                options = uri.to_hash.to_mash
+    if uri_or_options.kind_of?(Hash)
+      uri_or_options.to_mash
+    else
+      uri     = uri_or_options.kind_of?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
+      options = uri.to_hash.to_mash
 
-                # Extract the name/value pairs from the query portion of the
-                # connection uri, and set them as options directly.
-                if options[:query]
-                  options.update(uri.query_values)
-                end
+      # Extract the name/value pairs from the query portion of the
+      # connection uri, and set them as options directly.
+      if options[:query]
+        options.update(uri.query_values)
+      end
 
-                options[:adapter] = options[:scheme]
+      options[:adapter] = options[:scheme]
 
-                # # remap options to internal naming convention
-                # { :scheme => :adapter, :username => :user }.each do |old,new|
-                #   next unless options.key?(old) && !options.key?(new)
-                #   options[new] = options.delete(old)
-                # end
-
-                options
-              end
-
-
-    options
+      options
+    end
   end
 
 end

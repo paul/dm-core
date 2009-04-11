@@ -241,7 +241,7 @@ module DataMapper
         assert_kind_of 'name', name, Symbol
 
         @name                       = name
-        @options                    = options
+        @options                    = options.dup.freeze
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
       end
