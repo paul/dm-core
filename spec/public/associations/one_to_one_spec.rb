@@ -45,17 +45,14 @@ describe 'One to One Associations' do
 
     @model       = User
     @child_model = Comment
+
+    user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
+    comment = @child_model.create(:body => 'Cool spec', :user => user)
+
+    @comment     = @child_model.get(*comment.key)
+    @user        = @comment.user
   end
 
-  supported_by :all do
-    before :all do
-      user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
-      comment = @child_model.create(:body => 'Cool spec', :user => user)
+  it_should_behave_like 'A public Resource'
 
-      @comment     = @child_model.get(*comment.key)
-      @user        = @comment.user
-    end
-
-    it_should_behave_like 'A public Resource'
-  end
 end

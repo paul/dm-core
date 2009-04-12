@@ -45,15 +45,11 @@ describe DataMapper::Resource do
 
     @model       = User
     @child_model = Comment
+    user = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
+
+    @user = @model.get(*user.key)
   end
 
-  supported_by :all do
-    before :all do
-      user = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
+  it_should_behave_like 'A public Resource'
 
-      @user = @model.get(*user.key)
-    end
-
-    it_should_behave_like 'A public Resource'
-  end
 end

@@ -7,7 +7,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     self.loaded = loaded
 
-    # define the model prior to supported_by
     before :all do
       class ::Author
         include DataMapper::Resource
@@ -36,21 +35,18 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       Article.relationships[:authors].through
 
       @model = Article
+
+      @author = Author.create(:name => 'Dan Kubb')
+
+      @original = @author.articles.create(:title => 'Original Article')
+      @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+      @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
+
+      @articles       = @author.articles(:title => 'Sample Article')
+      @other_articles = @author.articles(:title => 'Other Article')
     end
 
-    supported_by :all do
-      before :all do
-        @author = Author.create(:name => 'Dan Kubb')
+    it_should_behave_like 'A public Collection'
 
-        @original = @author.articles.create(:title => 'Original Article')
-        @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
-
-        @articles       = @author.articles(:title => 'Sample Article')
-        @other_articles = @author.articles(:title => 'Other Article')
-      end
-
-      it_should_behave_like 'A public Collection'
-    end
   end
 end

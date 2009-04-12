@@ -8,7 +8,10 @@ share_examples_for "An Adapter" do
       # the case return false
 
       # CRUD methods can be inherited from parent class
-      described_type.instance_methods.any? { |m| method.to_s == m.to_s }
+      described_type.instance_methods.any? { |m| method.to_s == m.to_s } || (
+        !described_type.parent == DataMapper::Adapters::AbstractAdapter &&
+        described_type.parent.instance_methods.any? { |m| method.to_s == m.to_s }
+      )
     end
   end
 
@@ -213,7 +216,7 @@ share_examples_for "An Adapter" do
         describe 'regexp' do
           before do
             if defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
-              pending 'delegate regexp matches to same system that the InMemory and YAML adapters use'
+              pending 'delegate regexp matches to same system that the InMemory adapter uses'
             end
           end
 

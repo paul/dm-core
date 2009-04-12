@@ -96,29 +96,27 @@ share_examples_for 'A semipublic Resource' do
       end
     end
 
-    with_alternate_adapter do
-      it "should return the default adapter when nothing is specified" do
-        User.create(:name => "carl").repository.should == @repository
-        User.new.repository.should                     == @repository
-        User.get("carl").repository.should             == @repository
+    it "should return the default adapter when nothing is specified" do
+      User.create(:name => "carl").repository.should == @repository
+      User.new.repository.should                     == @repository
+      User.get("carl").repository.should             == @repository
+    end
+
+    it "should return the default repository for the model" do
+      statistic = Statistic.create(:name => "visits", :value => 2)
+      statistic.repository.should        == @alternate_repository
+      Statistic.new.repository.should    == @alternate_repository
+      Statistic.get(1).repository.should == @alternate_repository
+    end
+
+    it "should return the repository defined by the current context" do
+      @alternate_repository.scope do
+        User.new.repository.should                     == @alternate_repository
+        User.create(:name => "carl").repository.should == @alternate_repository
+        User.get("carl").repository.should             == @alternate_repository
       end
 
-      it "should return the default repository for the model" do
-        statistic = Statistic.create(:name => "visits", :value => 2)
-        statistic.repository.should        == @alternate_repository
-        Statistic.new.repository.should    == @alternate_repository
-        Statistic.get(1).repository.should == @alternate_repository
-      end
-
-      it "should return the repository defined by the current context" do
-        @alternate_repository.scope do
-          User.new.repository.should                     == @alternate_repository
-          User.create(:name => "carl").repository.should == @alternate_repository
-          User.get("carl").repository.should             == @alternate_repository
-        end
-
-        @alternate_repository.scope { User.get("carl") }.repository.should == @alternate_repository
-      end
+      @alternate_repository.scope { User.get("carl") }.repository.should == @alternate_repository
     end
 
   end

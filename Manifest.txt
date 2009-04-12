@@ -14,12 +14,9 @@ dm-core.gemspec
 lib/dm-core.rb
 lib/dm-core/adapters.rb
 lib/dm-core/adapters/abstract_adapter.rb
-lib/dm-core/adapters/data_objects_adapter.rb
 lib/dm-core/adapters/in_memory_adapter.rb
 lib/dm-core/adapters/mysql_adapter.rb
-lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
-lib/dm-core/adapters/yaml_adapter.rb
 lib/dm-core/associations.rb
 lib/dm-core/associations/many_to_many.rb
 lib/dm-core/associations/many_to_one.rb
@@ -80,9 +77,7 @@ spec/public/shared/resource_shared_spec.rb
 spec/public/transaction_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb
-spec/semipublic/adapters/postgres_adapter_spec.rb
 spec/semipublic/adapters/sqlite3_adapter_spec.rb
-spec/semipublic/adapters/yaml_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb

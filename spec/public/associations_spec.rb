@@ -60,7 +60,7 @@ share_examples_for 'it creates a one accessor' do
         end
       end
     end
-  end
+    end
 end
 
 share_examples_for 'it creates a one mutator' do
@@ -155,7 +155,7 @@ share_examples_for 'it creates a one mutator' do
         end
       end
     end
-  end
+    end
 end
 
 share_examples_for 'it creates a many accessor' do
@@ -199,10 +199,10 @@ share_examples_for 'it creates a many accessor' do
       end
     end
   end
-end
+  end
 
-share_examples_for 'it creates a many mutator' do
-  # TODO: write this
+  share_examples_for 'it creates a many mutator' do
+    # TODO: write this
 end
 
 describe DataMapper::Associations do
@@ -248,19 +248,17 @@ describe DataMapper::Associations do
         Engine.belongs_to(:car)
       end
 
-      supported_by :all do
-        before :all do
-          @car = Car.new
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a one accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a one mutator'
+      before :all do
+        @car = Car.new
       end
+
+      it { @car.should respond_to(@name) }
+
+      it_should_behave_like 'it creates a one accessor'
+
+      it { @car.should respond_to("#{@name}=") }
+
+      it_should_behave_like 'it creates a one mutator'
     end
 
     describe 'n..n' do
@@ -272,19 +270,17 @@ describe DataMapper::Associations do
         Door.belongs_to(:car)
       end
 
-      supported_by :all do
-        before :all do
-          @car = Car.new
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a many accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a many mutator'
+      before :all do
+        @car = Car.new
       end
+
+      it { @car.should respond_to(@name) }
+
+      it_should_behave_like 'it creates a many accessor'
+
+      it { @car.should respond_to("#{@name}=") }
+
+      it_should_behave_like 'it creates a many mutator'
     end
 
     describe 'n..n through' do
@@ -299,19 +295,17 @@ describe DataMapper::Associations do
         Car.has(1..4, :windows, :through => :doors)
       end
 
-      supported_by :all do
-        before :all do
-          @car = Car.new
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a many accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a many mutator'
+      before :all do
+        @car = Car.new
       end
+
+      it { @car.should respond_to(@name) }
+
+      it_should_behave_like 'it creates a many accessor'
+
+      it { @car.should respond_to("#{@name}=") }
+
+      it_should_behave_like 'it creates a many mutator'
     end
 
     it 'should raise an exception if the cardinality is not understood' do
@@ -334,19 +328,17 @@ describe DataMapper::Associations do
       Engine.has(1, :car)
     end
 
-    supported_by :all do
-      before :all do
-        @car = Car.new
-      end
-
-      it { @car.should respond_to(@name) }
-
-      it_should_behave_like 'it creates a one accessor'
-
-      it { @car.should respond_to("#{@name}=") }
-
-      it_should_behave_like 'it creates a one mutator'
+    before :all do
+      @car = Car.new
     end
+
+    it { @car.should respond_to(@name) }
+
+    it_should_behave_like 'it creates a one accessor'
+
+    it { @car.should respond_to("#{@name}=") }
+
+    it_should_behave_like 'it creates a one mutator'
 
     # TODO: refactor these specs into above structure once they pass
     describe 'pending query specs' do
@@ -355,105 +347,103 @@ describe DataMapper::Associations do
         Engine.belongs_to(:car)
       end
 
-      supported_by :all do
-        describe 'querying for a parent resource' do
-          before :all do
-            @car = Car.create
-            @engine = Engine.create(:car => @car)
-            @resource = @engine.car(:id => @car.id)
-          end
-
-          it 'should return a Resource' do
-            @resource.should be_kind_of(DataMapper::Resource)
-          end
-
-          it 'should return expected Resource' do
-            @resource.should eql(@car)
-          end
+      describe 'querying for a parent resource' do
+        before :all do
+          @car = Car.create
+          @engine = Engine.create(:car => @car)
+          @resource = @engine.car(:id => @car.id)
         end
 
-        describe 'querying for a parent resource that does not exist' do
-          before :all do
-            @car = Car.create
-            @engine = Engine.create(:car => @car)
-            @resource = @engine.car(:id.not => @car.id)
-          end
-
-          it 'should return nil' do
-            @resource.should be_nil
-          end
+        it 'should return a Resource' do
+          @resource.should be_kind_of(DataMapper::Resource)
         end
 
-        describe 'changing the parent resource' do
-          before :all do
-            @car = Car.create
-            @engine = Engine.new
-            @engine.car = @car
-          end
-
-          it 'should set the associated foreign key' do
-            @engine.car_id.should == @car.id
-          end
-
-          it 'should add the engine object to the car' do
-            pending 'Changing a belongs_to parent should add the object to the correct association' do
-              @car.engines.should include(@engine)
-            end
-          end
+        it 'should return expected Resource' do
+          @resource.should eql(@car)
         end
+    end
 
-        describe 'changing the parent foreign key' do
-          before :all do
-            @car = Car.create
+    describe 'querying for a parent resource that does not exist' do
+      before :all do
+        @car = Car.create
+        @engine = Engine.create(:car => @car)
+        @resource = @engine.car(:id.not => @car.id)
+      end
 
-            @engine = Engine.new
-            @engine.car_id = @car.id
-          end
+      it 'should return nil' do
+        @resource.should be_nil
+      end
+  end
 
-          it 'should set the associated resource' do
-            @engine.car.should eql(@car)
-          end
-        end
+  describe 'changing the parent resource' do
+    before :all do
+      @car = Car.create
+      @engine = Engine.new
+      @engine.car = @car
+    end
 
-        describe 'changing an existing resource through the relation' do
-          before :all do
-            @car1 = Car.create
-            @car2 = Car.create
-            @engine = Engine.create(:car => @car1)
-            @engine.car = @car2
-          end
+    it 'should set the associated foreign key' do
+      @engine.car_id.should == @car.id
+    end
 
-          it 'should also change the foreign key' do
-            @engine.car_id.should == @car2.id
-          end
+    it 'should add the engine object to the car' do
+      pending 'Changing a belongs_to parent should add the object to the correct association' do
+        @car.engines.should include(@engine)
+      end
+    end
+  end
 
-          it 'should add the engine to the car' do
-            pending 'Changing a belongs_to parent should add the object to the correct association' do
-              @car2.engines.should include(@engine)
-            end
-          end
-        end
+  describe 'changing the parent foreign key' do
+    before :all do
+      @car = Car.create
 
-        describe 'changing an existing resource through the relation' do
-          before :all do
-            @car1 = Car.create
-            @car2 = Car.create
-            @engine = Engine.create(:car => @car1)
-            @engine.car_id = @car2.id
-          end
+      @engine = Engine.new
+      @engine.car_id = @car.id
+    end
 
-          it 'should also change the foreign key' do
-            pending 'a change to the foreign key should also change the related object' do
-              @engine.car.should eql(@car2)
-            end
-          end
+    it 'should set the associated resource' do
+      @engine.car.should eql(@car)
+    end
+  end
 
-          it 'should add the engine to the car' do
-            pending 'a change to the foreign key should also change the related object' do
-              @car2.engines.should include(@engine)
-            end
-          end
-        end
+  describe 'changing an existing resource through the relation' do
+    before :all do
+      @car1 = Car.create
+      @car2 = Car.create
+      @engine = Engine.create(:car => @car1)
+      @engine.car = @car2
+    end
+
+    it 'should also change the foreign key' do
+      @engine.car_id.should == @car2.id
+    end
+
+    it 'should add the engine to the car' do
+      pending 'Changing a belongs_to parent should add the object to the correct association' do
+        @car2.engines.should include(@engine)
+      end
+    end
+  end
+
+  describe 'changing an existing resource through the relation' do
+    before :all do
+      @car1 = Car.create
+      @car2 = Car.create
+      @engine = Engine.create(:car => @car1)
+      @engine.car_id = @car2.id
+    end
+
+    it 'should also change the foreign key' do
+      pending 'a change to the foreign key should also change the related object' do
+        @engine.car.should eql(@car2)
+      end
+    end
+
+    it 'should add the engine to the car' do
+      pending 'a change to the foreign key should also change the related object' do
+        @car2.engines.should include(@engine)
+      end
+    end
       end
     end
   end

@@ -28,7 +28,6 @@ end
 
     self.loaded = loaded
 
-    # define the model prior to supported_by
     before :all do
       class ::Author
         include DataMapper::Resource
@@ -54,250 +53,248 @@ end
       @model = Article
     end
 
-    supported_by :all do
-      before :all do
-        @author  = Author.create(:name => 'Dan Kubb')
+    before :all do
+      @author  = Author.create(:name => 'Dan Kubb')
 
-        @original = @author.articles.create(:title => 'Original Article')
-        @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
+      @original = @author.articles.create(:title => 'Original Article')
+      @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+      @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
-        @articles       = @author.articles(:title => 'Sample Article')
-        @other_articles = @author.articles(:title => 'Other Article')
-      end
+      @articles       = @author.articles(:title => 'Sample Article')
+      @other_articles = @author.articles(:title => 'Other Article')
+    end
 
-      it_should_behave_like 'A public Collection'
+    it_should_behave_like 'A public Collection'
 
-      describe '#<<' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles << @resource
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
-        end
-      end
-
-      describe '#collect!' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.collect! { |r| @resource }
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
-        end
-      end
-
-      describe '#concat' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.concat([ @resource ])
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
-        end
-      end
-
-      describe '#create' do
-        describe 'when the parent is not saved' do
-          it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
-            lambda {
-              author.articles.create
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before creating a Resource')
-          end
-        end
-      end
-
-      describe '#destroy' do
-        describe 'when the parent is not saved' do
-          it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
-            lambda {
-              author.articles.destroy
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection')
-          end
-        end
-      end
-
-      describe '#destroy!' do
-        describe 'when the parent is not saved' do
-          it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
-            lambda {
-              author.articles.destroy!
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection without validation')
-          end
-        end
-      end
-
-      describe '#insert' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.insert(0, @resource)
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
-        end
-      end
-
-      it 'should respond to a public collection method with #method_missing' do
-        @articles.respond_to?(:to_a)
-      end
-
-      describe '#method_missing' do
-        describe 'with a public collection method' do
-          before :all do
-            @return = @articles.to_a
-          end
-
-          it 'should return expected object' do
-            @return.should == @articles
-          end
-        end
-
-        describe 'with unknown method' do
-          it 'should raise an exception' do
-            lambda {
-              @articles.unknown
-            }.should raise_error(NoMethodError)
-          end
-        end
-      end
-
-      describe '#new' do
+    describe '#<<' do
+      describe 'when provided a Resource belonging to another association' do
         before :all do
-          @resource = @author.articles.new
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles << @resource
         end
 
-        it 'should associate the Resource to the Collection' do
-          @resource.author.should == @author
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#collect!' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.collect! { |r| @resource }
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#concat' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.concat([ @resource ])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#create' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.articles.create
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before creating a Resource')
+        end
+      end
+    end
+
+    describe '#destroy' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.articles.destroy
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection')
+        end
+      end
+    end
+
+    describe '#destroy!' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.articles.destroy!
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection without validation')
+        end
+      end
+    end
+
+    describe '#insert' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.insert(0, @resource)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    it 'should respond to a public collection method with #method_missing' do
+      @articles.respond_to?(:to_a)
+    end
+
+    describe '#method_missing' do
+      describe 'with a public collection method' do
+        before :all do
+          @return = @articles.to_a
+        end
+
+        it 'should return expected object' do
+          @return.should == @articles
         end
       end
 
-      describe '#push' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.push(@resource)
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
+      describe 'with unknown method' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.unknown
+          }.should raise_error(NoMethodError)
         end
       end
+    end
 
-      describe '#replace' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.replace([ @resource ])
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
-
-          it 'should relate the Resource to the Collection' do
-            @resource.collection.should be_equal(@articles)
-          end
-
-          it_should_behave_like 'It can transfer a Resource from another association'
-        end
+    describe '#new' do
+      before :all do
+        @resource = @author.articles.new
       end
 
-      describe '#unshift' do
-        describe 'when provided a Resource belonging to another association' do
-          before :all do
-            @original = @other_articles
-            @resource = @original.first
-            @return = @articles.unshift(@resource)
-          end
+      it 'should associate the Resource to the Collection' do
+        @resource.author.should == @author
+      end
+    end
 
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
+    describe '#push' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.push(@resource)
+        end
 
-          it 'should return self' do
-            @return.should be_equal(@articles)
-          end
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
 
-          it_should_behave_like 'It can transfer a Resource from another association'
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#replace' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.replace([ @resource ])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it 'should relate the Resource to the Collection' do
+          @resource.collection.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#unshift' do
+      describe 'when provided a Resource belonging to another association' do
+        before :all do
+          @original = @other_articles
+          @resource = @original.first
+          @return = @articles.unshift(@resource)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#update' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.articles.update(:title => 'New Title')
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection')
         end
       end
+    end
 
-      describe '#update' do
-        describe 'when the parent is not saved' do
-          it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
-            lambda {
-              author.articles.update(:title => 'New Title')
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection')
-          end
-        end
-      end
-
-      describe '#update!' do
-        describe 'when the parent is not saved' do
-          it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
-            lambda {
-              author.articles.update!(:title => 'New Title')
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection without validation')
-          end
+    describe '#update!' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.articles.update!(:title => 'New Title')
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection without validation')
         end
       end
     end

@@ -20,21 +20,17 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       end
 
       @model = Article
+      @original = @model.create(:title => 'Original Article')
+      @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+      @other    = @model.create(:title => 'Other Article',  :content => 'Other')
+
+      @articles       = @model.all(:title => 'Sample Article')
+      @other_articles = @model.all(:title => 'Other Article')
+
+      @articles.entries if loaded
     end
 
-    supported_by :all do
-      before :all do
-        @original = @model.create(:title => 'Original Article')
-        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @model.create(:title => 'Other Article',  :content => 'Other')
+    it_should_behave_like 'A public Collection'
 
-        @articles       = @model.all(:title => 'Sample Article')
-        @other_articles = @model.all(:title => 'Other Article')
-
-        @articles.entries if loaded
-      end
-
-      it_should_behave_like 'A public Collection'
-    end
   end
 end
